@@ -1,0 +1,132 @@
+{
+  "nodes": [
+    {
+      "id": "node-1764986993822",
+      "type": "variable",
+      "name": "alpha",
+      "parameters": {
+        "mu": "-1",
+        "sigma": "2"
+      },
+      "observed": false,
+      "position": {
+        "x": 290.4261755062055,
+        "y": 376.4303473763641
+      },
+      "distribution": "Normal"
+    },
+    {
+      "id": "node-1764987011005",
+      "type": "variable",
+      "name": "beta",
+      "parameters": {
+        "mu": "0",
+        "sigma": "1"
+      },
+      "observed": false,
+      "position": {
+        "x": 369.7775728530956,
+        "y": 112.74303296149878
+      },
+      "distribution": "Normal"
+    },
+    {
+      "id": "node-1764987033638",
+      "type": "variable",
+      "name": "X",
+      "parameters": {},
+      "observed": true,
+      "position": {
+        "x": 210.41748637694494,
+        "y": 234.84387956116547
+      },
+      "observedDataSource": "data-feat-X-1764987184555"
+    },
+    {
+      "id": "node-1764987086905",
+      "type": "variable",
+      "name": "sigma",
+      "parameters": {
+        "beta": "10"
+      },
+      "observed": false,
+      "position": {
+        "x": 298.22023567562746,
+        "y": 129.70280993105789
+      },
+      "distribution": "HalfCauchy"
+    },
+    {
+      "id": "node-1764987135489",
+      "type": "computed",
+      "name": "mu",
+      "parameters": {},
+      "expression": "@alpha + @beta * @X",
+      "observed": false,
+      "position": {
+        "x": 378.96152427044586,
+        "y": 318.93972540352144
+      }
+    },
+    {
+      "id": "node-1764987153372",
+      "type": "variable",
+      "name": "y",
+      "parameters": {
+        "mu": "@mu",
+        "sigma": "@sigma"
+      },
+      "observed": true,
+      "position": {
+        "x": 318.18657875538815,
+        "y": 168.3099351857914
+      },
+      "distribution": "Normal",
+      "observedDataSource": "data-obs-y-1764987184555"
+    }
+  ],
+  "edges": [
+    {
+      "id": "node-1764986993822-node-1764987135489",
+      "source": "node-1764986993822",
+      "target": "node-1764987135489"
+    },
+    {
+      "id": "node-1764987011005-node-1764987135489",
+      "source": "node-1764987011005",
+      "target": "node-1764987135489"
+    },
+    {
+      "id": "node-1764987033638-node-1764987135489",
+      "source": "node-1764987033638",
+      "target": "node-1764987135489"
+    },
+    {
+      "id": "node-1764987135489-node-1764987153372",
+      "source": "node-1764987135489",
+      "target": "node-1764987153372"
+    },
+    {
+      "id": "node-1764987086905-node-1764987153372",
+      "source": "node-1764987086905",
+      "target": "node-1764987153372"
+    }
+  ],
+  "csvMetadata": {
+    "file_id": "930037cf-87f1-4b3e-bf4a-d4817f3a2244",
+    "filename": "linear_regression.csv",
+    "columns": [
+      {
+        "name": "X",
+        "dtype": "float64",
+        "role": "feature"
+      },
+      {
+        "name": "y",
+        "dtype": "float64",
+        "role": "observed"
+      }
+    ],
+    "rows": 200
+  }
+}
