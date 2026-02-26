@@ -41,7 +41,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: celery -A app.celery_app worker --loglevel=info --concurrency=2
+    command: celery -A app.celery_app worker --loglevel=info --pool=solo
     volumes:
       - ./backend:/app
       - /tmp/bayesian_gui_uploads:/tmp/bayesian_gui_uploads
