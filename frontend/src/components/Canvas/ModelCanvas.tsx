@@ -24,7 +24,7 @@ const nodeTypes = {
 }
 
 export const ModelCanvas = () => {
-  const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
+  const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, setSelectedNodeIds, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
 
   const [rfNodes, setNodes, onNodesChange] = useNodesState([])
   const [rfEdges, setEdges, onEdgesChange] = useEdgesState([])
@@ -103,6 +103,10 @@ export const ModelCanvas = () => {
     deleted.forEach(edge => deleteEdge(edge.id))
   }, [deleteEdge])
 
+  const onSelectionChange = useCallback(({ nodes: selectedNodes }: { nodes: Node[] }) => {
+    setSelectedNodeIds(selectedNodes.map(n => n.id))
+  }, [setSelectedNodeIds])
+
   const handleNodesChange = useCallback((changes: NodeChange[]) => {
     // React Flowのデフォルトの変更を適用
     onNodesChange(changes)
@@ -127,6 +131,7 @@ export const ModelCanvas = () => {
         onNodeClick={onNodeClick}
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
+        onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         fitView
         attributionPosition="bottom-right"

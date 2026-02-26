@@ -5,6 +5,8 @@ interface ModelStore {
   nodes: NodeData[]
   edges: EdgeData[]
   selectedNode: string | null
+  selectedNodeIds: string[]
+  clipboard: NodeData[]
   csvMetadata: CSVMetadata | null
 
   addNode: (node: NodeData) => void
@@ -16,17 +18,25 @@ interface ModelStore {
   deleteEdge: (id: string) => void
 
   setSelectedNode: (id: string | null) => void
+  setSelectedNodeIds: (ids: string[]) => void
   setCsvMetadata: (metadata: CSVMetadata | null) => void
+
+  copySelectedNodes: () => void
+  pasteNodes: () => void
 
   getModel: () => ModelData
   loadModel: (model: ModelData) => void
   reset: () => void
 }
 
+let pasteCounter = 0
+
 export const useModelStore = create<ModelStore>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNode: null,
+  selectedNodeIds: [],
+  clipboard: [],
   csvMetadata: null,
 
   addNode: (node) => set((state) => ({
@@ -57,7 +67,46 @@ export const useModelStore = create<ModelStore>((set, get) => ({
 
   setSelectedNode: (id) => set({ selectedNode: id }),
 
+  setSelectedNodeIds: (ids) => set({ selectedNodeIds: ids }),
+
   setCsvMetadata: (metadata) => set({ csvMetadata: metadata }),
+
+  copySelectedNodes: () => {
+    const state = get()
+    const ids = state.selectedNodeIds.length > 0
+      ? state.selectedNodeIds
+      : state.selectedNode ? [state.selectedNode] : []
+    if (ids.length === 0) return
+
+    const nodesToCopy = state.nodes
+      .filter(n => ids.includes(n.id))
+      .map(n => ({ ...n, position: { ...n.position }, parameters: { ...n.parameters } }))
+    pasteCounter = 0
+    set({ clipboard: nodesToCopy })
+  },
+
+  pasteNodes: () => {
+    const state = get()
+    if (state.clipboard.length === 0) return
+
+    pasteCounter++
+    const offset = pasteCounter * 20
+
+    const newNodes: NodeData[] = state.clipboard.map(n => ({
+      ...n,
+      id: `${n.id}_copy_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      name: `${n.name}_copy`,
+      parameters: { ...n.parameters },
+      position: {
+        x: n.position.x + offset,
+        y: n.position.y + offset
+      }
+    }))
+
+    set((s) => ({
+      nodes: [...s.nodes, ...newNodes]
+    }))
+  },
 
   getModel: () => {
     const state = get()
@@ -78,6 +127,8 @@ export const useModelStore = create<ModelStore>((set, get) => ({
     nodes: [],
     edges: [],
     selectedNode: null,
+    selectedNodeIds: [],
+    clipboard: [],
     csvMetadata: null
   })
 }))
