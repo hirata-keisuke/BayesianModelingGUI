@@ -9,7 +9,18 @@ export const useInferenceConfig = () => {
   const navigate = useNavigate()
   const toast = useToast()
   const { getModel } = useModelStore()
-  const { setResult, setLoading, isLoading } = useInferenceStore()
+  const {
+    setResult,
+    setLoading,
+    isLoading,
+    connectWebSocket,
+    disconnectWebSocket,
+    cancelJob,
+    resetJob,
+    progress,
+    stage,
+    jobStatus,
+  } = useInferenceStore()
 
   const [inferenceMethod, setInferenceMethod] = useState<'MCMC' | 'VI'>('MCMC')
   const [draws, setDraws] = useState(1000)
@@ -105,14 +116,6 @@ export const useInferenceConfig = () => {
 
       setLoading(true)
 
-      toast({
-        title: '推論を実行中...',
-        description: 'この処理には時間がかかる場合があります',
-        status: 'info',
-        duration: 3000,
-        isClosable: true
-      })
-
       const config = inferenceMethod === 'MCMC'
         ? {
             method: 'MCMC',
@@ -131,42 +134,88 @@ export const useInferenceConfig = () => {
             hdi_prob: hdiProb
           }
 
-      const response = await apiClient.runInference({
-        model,
-        config
+      // ジョブを投入
+      const response = await apiClient.submitInference({ model, config })
+      const { job_id } = response.data
+
+      toast({
+        title: '推論ジョブを投入しました',
+        description: 'バックグラウンドで実行中です',
+        status: 'info',
+        duration: 2000,
+        isClosable: true
       })
 
-      setResult(response.data)
+      // WebSocketで進捗を監視
+      connectWebSocket(
+        job_id,
+        // 成功時コールバック
+        async () => {
+          try {
+            const resultResponse = await apiClient.getJobResult(job_id)
+            setResult(resultResponse.data)
+            disconnectWebSocket()
 
-      if (response.data.success) {
-        toast({
-          title: '推論が完了しました',
-          status: 'success',
-          duration: 2000,
-          isClosable: true
-        })
-        navigate('/inference/results')
-      } else {
-        toast({
-          title: '推論に失敗しました',
-          description: response.data.error || 'エラーが発生しました',
-          status: 'error',
-          duration: 5000,
-          isClosable: true
-        })
-        setLoading(false)
-      }
+            if (resultResponse.data.success) {
+              toast({
+                title: '推論が完了しました',
+                status: 'success',
+                duration: 2000,
+                isClosable: true
+              })
+              navigate('/inference/results')
+            } else {
+              toast({
+                title: '推論に失敗しました',
+                description: resultResponse.data.error || 'エラーが発生しました',
+                status: 'error',
+                duration: 5000,
+                isClosable: true
+              })
+              setLoading(false)
+            }
+          } catch (err: any) {
+            console.error('Failed to fetch result:', err)
+            setLoading(false)
+            disconnectWebSocket()
+          }
+        },
+        // 失敗時コールバック
+        (error: string) => {
+          disconnectWebSocket()
+          setLoading(false)
+          toast({
+            title: '推論に失敗しました',
+            description: error,
+            status: 'error',
+            duration: 5000,
+            isClosable: true
+          })
+        }
+      )
+
     } catch (error: any) {
-      console.error('Inference error:', error)
+      console.error('Inference submit error:', error)
       setLoading(false)
       toast({
-        title: '推論に失敗しました',
+        title: '推論の投入に失敗しました',
         description: error.message || 'ネットワークエラーが発生しました',
         status: 'error',
         duration: 5000,
         isClosable: true
       })
     }
+  }
+
+  const handleCancelInference = () => {
+    cancelJob()
+    resetJob()
+    toast({
+      title: '推論をキャンセルしました',
+      status: 'info',
+      duration: 2000,
+      isClosable: true
+    })
   }
 
   return {
@@ -191,7 +240,11 @@ export const useInferenceConfig = () => {
     priorPredictiveResult,
     isPriorCheckLoading,
     isLoading,
+    progress,
+    stage,
+    jobStatus,
     handleRunPriorPredictive,
-    handleRunInference
+    handleRunInference,
+    handleCancelInference,
   }
 }

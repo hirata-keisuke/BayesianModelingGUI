@@ -5,20 +5,64 @@ from ...models.inference import (
     InferenceConfigMCMC,
     InferenceConfigVI,
     PriorPredictiveRequest,
-    PriorPredictiveResult
+    PriorPredictiveResult,
+    JobSubmitResponse,
+    JobStatusResponse,
 )
 from ...services.inference import InferenceEngine
+from ...tasks.inference_task import run_inference_task
+from ...services.job_store import get_job_status, get_job_result
 
 router = APIRouter()
 
 
-@router.post("/run", response_model=InferenceResult)
+@router.post("/submit", response_model=JobSubmitResponse)
+async def submit_inference(request: InferenceRequest):
+    """推論ジョブを投入し、即座にjob_idを返す"""
+    task = run_inference_task.delay(
+        request.model.model_dump(),
+        request.config.model_dump(),
+    )
+    return JobSubmitResponse(job_id=task.id)
+
+
+@router.get("/status/{job_id}", response_model=JobStatusResponse)
+async def get_inference_status(job_id: str):
+    """ジョブの状態を取得する（ポーリング用フォールバック）"""
+    status = get_job_status(job_id)
+    if status is None:
+        return JobStatusResponse(
+            job_id=job_id,
+            status="PENDING",
+            progress=0.0,
+            stage="キューで待機中...",
+        )
+    return JobStatusResponse(**status)
+
+
+@router.get("/result/{job_id}", response_model=InferenceResult)
+async def get_inference_result(job_id: str):
+    """ジョブの結果を取得する"""
+    result = get_job_result(job_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="結果が見つかりません")
+    return InferenceResult(**result)
+
+
+@router.post("/cancel/{job_id}")
+async def cancel_inference(job_id: str):
+    """推論ジョブをキャンセルする"""
+    from ...celery_app import celery_app
+    celery_app.control.revoke(job_id, terminate=True, signal="SIGTERM")
+    return {"job_id": job_id, "status": "cancelled"}
+
+
+@router.post("/run", response_model=InferenceResult, deprecated=True)
 async def run_inference(request: InferenceRequest):
-    """推論を実行"""
+    """推論を同期実行（後方互換用、非推奨）"""
     try:
         engine = InferenceEngine(request.model)
 
-        # 推論手法に応じて実行
         if isinstance(request.config, InferenceConfigMCMC):
             trace, pm_model = engine.run_mcmc(request.config)
             hdi_prob = request.config.hdi_prob
@@ -31,16 +75,9 @@ async def run_inference(request: InferenceRequest):
                 detail="Invalid inference configuration"
             )
 
-        # プロットを生成
         plots = engine.generate_plots(trace, hdi_prob=hdi_prob)
-
-        # サマリーを生成
         summary = engine.generate_summary(trace, hdi_prob=hdi_prob)
-
-        # トレースサンプルをCSV形式で抽出
         trace_samples_csv = engine.extract_trace_samples(trace)
-
-        # モデル比較指標（LOO、WAIC）を計算
         model_comparison = engine.compute_model_comparison(trace, pm_model)
 
         return InferenceResult(
@@ -70,8 +107,6 @@ async def run_prior_predictive(request: PriorPredictiveRequest):
     """事前予測チェックを実行"""
     try:
         engine = InferenceEngine(request.model)
-
-        # 事前予測サンプリングを実行
         prior_predictive, plots = engine.run_prior_predictive(samples=request.samples)
 
         return PriorPredictiveResult(

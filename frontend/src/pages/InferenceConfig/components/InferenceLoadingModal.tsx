@@ -7,8 +7,11 @@ import {
   Spinner,
   Heading,
   Text,
-  Progress
+  Progress,
+  Button,
+  HStack,
 } from '@chakra-ui/react'
+import { JobStatus } from '../../../stores/inferenceStore'
 
 interface InferenceLoadingModalProps {
   isOpen: boolean
@@ -18,6 +21,10 @@ interface InferenceLoadingModalProps {
   draws?: number
   viMethod?: string
   viIterations?: number
+  progress: number
+  stage: string
+  jobStatus: JobStatus | null
+  onCancel: () => void
 }
 
 export const InferenceLoadingModal = ({
@@ -27,8 +34,15 @@ export const InferenceLoadingModal = ({
   chains,
   draws,
   viMethod,
-  viIterations
+  viIterations,
+  progress,
+  stage,
+  jobStatus,
+  onCancel,
 }: InferenceLoadingModalProps) => {
+  const progressPercent = Math.round(progress * 100)
+  const hasProgress = progress > 0
+
   return (
     <Modal isOpen={isOpen} onClose={() => {}} closeOnOverlayClick={false} isCentered>
       <ModalOverlay bg="blackAlpha.700" backdropFilter="blur(10px)" />
@@ -52,17 +66,40 @@ export const InferenceLoadingModal = ({
                   : `${viMethod}で${viIterations}回の反復を実行中`
                 }
               </Text>
-              <Text color="gray.500" fontSize="xs" textAlign="center" mt={2}>
-                この処理には数分かかる場合があります
-              </Text>
+              {stage && (
+                <Text color="purple.500" fontSize="sm" fontWeight="bold" textAlign="center" mt={1}>
+                  {stage}
+                </Text>
+              )}
             </VStack>
-            <Progress
-              size="xs"
-              isIndeterminate
-              colorScheme="purple"
-              w="100%"
-              borderRadius="full"
-            />
+            <VStack w="100%" spacing={1}>
+              <Progress
+                size="sm"
+                value={hasProgress ? progressPercent : undefined}
+                isIndeterminate={!hasProgress}
+                colorScheme="purple"
+                w="100%"
+                borderRadius="full"
+              />
+              {hasProgress && (
+                <HStack w="100%" justify="space-between">
+                  <Text color="gray.500" fontSize="xs">
+                    {jobStatus === 'PENDING' ? 'キューで待機中' : '処理中'}
+                  </Text>
+                  <Text color="gray.500" fontSize="xs">
+                    {progressPercent}%
+                  </Text>
+                </HStack>
+              )}
+            </VStack>
+            <Button
+              size="sm"
+              variant="outline"
+              colorScheme="red"
+              onClick={onCancel}
+            >
+              キャンセル
+            </Button>
           </VStack>
         </ModalBody>
       </ModalContent>

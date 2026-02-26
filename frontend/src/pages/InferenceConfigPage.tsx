@@ -46,8 +46,12 @@ export const InferenceConfigPage = () => {
     priorPredictiveResult,
     isPriorCheckLoading,
     isLoading,
+    progress,
+    stage,
+    jobStatus,
     handleRunPriorPredictive,
-    handleRunInference
+    handleRunInference,
+    handleCancelInference,
   } = useInferenceConfig()
 
   return (
@@ -154,6 +158,10 @@ export const InferenceConfigPage = () => {
         draws={draws}
         viMethod={viMethod}
         viIterations={viIterations}
+        progress={progress}
+        stage={stage}
+        jobStatus={jobStatus}
+        onCancel={handleCancelInference}
       />
     </Box>
   )

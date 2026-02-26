@@ -54,3 +54,19 @@ class PriorPredictiveResult(BaseModel):
     prior_predictive_plot: Optional[str] = None  # base64 encoded image
     prior_trace_plot: Optional[str] = None  # base64 encoded image
     error: Optional[str] = None
+
+
+# --- ジョブキュー関連モデル ---
+
+class JobSubmitResponse(BaseModel):
+    """ジョブ投入のレスポンス"""
+    job_id: str
+
+
+class JobStatusResponse(BaseModel):
+    """ジョブ状態のレスポンス"""
+    job_id: str
+    status: str  # PENDING, BUILDING_MODEL, SAMPLING, GENERATING_PLOTS, COMPUTING_METRICS, SUCCESS, FAILURE
+    progress: float  # 0.0 ~ 1.0
+    stage: str
+    error: Optional[str] = None
