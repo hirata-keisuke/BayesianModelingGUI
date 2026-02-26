@@ -7,6 +7,7 @@ export const useNodeEditor = (selectedNode: string | null, distributions?: any) 
   const node = nodes.find(n => n.id === selectedNode)
 
   const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
   const [distribution, setDistribution] = useState('')
   const [parameters, setParameters] = useState<Record<string, any>>({})
   const [parameterTypes, setParameterTypes] = useState<Record<string, 'value' | 'reference'>>({})
@@ -35,6 +36,7 @@ export const useNodeEditor = (selectedNode: string | null, distributions?: any) 
   useEffect(() => {
     if (node) {
       setName(node.name)
+      setDescription(node.description || '')
       setDistribution(node.distribution || '')
       setParameters(node.parameters || {})
       setObserved(node.observed)
@@ -113,6 +115,7 @@ export const useNodeEditor = (selectedNode: string | null, distributions?: any) 
 
       updateNode(selectedNode, {
         name,
+        description: description || undefined,
         distribution: distribution || undefined,
         parameters: finalParameters,
         observed,
@@ -246,6 +249,8 @@ export const useNodeEditor = (selectedNode: string | null, distributions?: any) 
     node,
     name,
     setName,
+    description,
+    setDescription,
     distribution,
     setDistribution: handleDistributionChange,
     parameters,

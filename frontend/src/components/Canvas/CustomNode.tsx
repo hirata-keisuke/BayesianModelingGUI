@@ -1,11 +1,12 @@
 import { memo } from 'react'
 import { Handle, Position, NodeProps } from 'reactflow'
-import { Box, Text, Badge, VStack } from '@chakra-ui/react'
+import { Box, Text, Badge, VStack, Tooltip, useColorModeValue } from '@chakra-ui/react'
 import { NodeData } from '../../types/model'
 
 const CustomNode = ({ data }: NodeProps<NodeData>) => {
   const bgColor = data.observed ? 'gray.200' : 'white'
   const borderColor = data.type === 'data' ? 'blue.500' : data.type === 'computed' ? 'green.500' : 'purple.500'
+  const descriptionColor = useColorModeValue('gray.500', 'gray.400')
 
   return (
     <Box
@@ -54,6 +55,14 @@ const CustomNode = ({ data }: NodeProps<NodeData>) => {
           <Badge colorScheme="orange" fontSize="xs">
             Observed
           </Badge>
+        )}
+
+        {data.description && (
+          <Tooltip label={data.description} hasArrow placement="bottom" openDelay={300}>
+            <Text fontSize="xs" color={descriptionColor} isTruncated maxW="140px">
+              {data.description.length > 20 ? data.description.slice(0, 20) + '...' : data.description}
+            </Text>
+          </Tooltip>
         )}
       </VStack>
 

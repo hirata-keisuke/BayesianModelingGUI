@@ -9,6 +9,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Textarea,
   VStack,
   Badge
 } from '@chakra-ui/react'
@@ -39,6 +40,8 @@ export const NodeEditModal = ({ isOpen, onClose }: NodeEditModalProps) => {
     node,
     name,
     setName,
+    description,
+    setDescription,
     distribution,
     setDistribution,
     parameters,
@@ -93,6 +96,18 @@ export const NodeEditModal = ({ isOpen, onClose }: NodeEditModalProps) => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Variable name"
+              />
+            </FormControl>
+
+            <FormControl>
+              <FormLabel fontSize="sm">メモ</FormLabel>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="このノードの説明や用途を記述..."
+                size="sm"
+                rows={2}
+                resize="vertical"
               />
             </FormControl>
 
