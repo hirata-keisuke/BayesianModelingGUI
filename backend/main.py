@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import csv, validation, codegen, distributions, inference
+from app.api.routes import csv, validation, codegen, distributions, inference, ws
 
 app = FastAPI(
     title="PyMC Model Builder API",
@@ -23,6 +23,7 @@ app.include_router(validation.router, prefix="/api/validation", tags=["validatio
 app.include_router(codegen.router, prefix="/api/codegen", tags=["codegen"])
 app.include_router(distributions.router, prefix="/api/distributions", tags=["distributions"])
 app.include_router(inference.router, prefix="/api/inference", tags=["inference"])
+app.include_router(ws.router, tags=["websocket"])
 
 
 @app.get("/")
