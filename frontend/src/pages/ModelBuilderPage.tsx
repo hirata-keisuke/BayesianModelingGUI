@@ -5,6 +5,8 @@ import {
   AlertDialogHeader, AlertDialogBody, AlertDialogFooter,
   Button, Text
 } from '@chakra-ui/react'
+import { useState, useEffect, useCallback } from 'react'
+import { Grid, GridItem, useDisclosure, useToast } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
 import { Header } from '../components/Common/Header'
 import { StatusBar } from '../components/Common/StatusBar'
@@ -44,6 +46,25 @@ export const ModelBuilderPage = () => {
       redo()
     }
   }, [undo, redo])
+  const { selectedNode, setSelectedNode, getModel, loadModel, copySelectedNodes, pasteNodes } = useModelStore()
+  const { data: validation } = useModelValidation(true)
+  const isValidationValid = validation?.valid ?? true
+
+  // キーボードショートカット: Ctrl+C (copy), Ctrl+V (paste)
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.shiftKey) {
+      // テキスト入力中はブラウザデフォルトを優先
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      e.preventDefault()
+      copySelectedNodes()
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'v' && !e.shiftKey) {
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      e.preventDefault()
+      pasteNodes()
+    }
+  }, [copySelectedNodes, pasteNodes])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
