@@ -32,6 +32,10 @@ export const ModelBuilderPage = () => {
   const toast = useToast()
   const lastSaved = useAutoSave()
 
+  const { selectedNode, setSelectedNode, getModel, loadModel, copySelectedNodes, pasteNodes } = useModelStore()
+  const { data: validation } = useModelValidation(true)
+  const isValidationValid = validation?.valid ?? true
+
   const { selectedNode, setSelectedNode, getModel, loadModel, undo, redo } = useModelStore()
   const { data: validation } = useModelValidation(true)
   const isValidationValid = validation?.valid ?? true

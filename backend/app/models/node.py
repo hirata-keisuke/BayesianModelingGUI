@@ -18,6 +18,7 @@ class Node(BaseModel):
     id: str
     type: NodeType
     name: str
+    description: Optional[str] = None
     distribution: Optional[str] = None
     parameters: Dict[str, Any] = Field(default_factory=dict)
     expression: Optional[str] = None  # 計算ノード用の式

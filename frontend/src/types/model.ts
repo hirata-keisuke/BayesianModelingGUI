@@ -10,6 +10,7 @@ export interface NodeData {
   name: string
   distribution?: string
   parameters: Record<string, any>
+  description?: string  // ノードのメモ・説明文
   expression?: string  // 計算ノード用の式
   shape?: number[]
   observed: boolean
