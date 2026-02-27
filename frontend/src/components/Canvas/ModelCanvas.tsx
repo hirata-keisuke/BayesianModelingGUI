@@ -14,7 +14,7 @@ import ReactFlow, {
   applyNodeChanges
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { Box } from '@chakra-ui/react'
+import { Box, useColorModeValue } from '@chakra-ui/react'
 import { useModelStore } from '../../stores/modelStore'
 import CustomNode from './CustomNode'
 import { NodeData } from '../../types/model'
@@ -24,6 +24,9 @@ const nodeTypes = {
 }
 
 export const ModelCanvas = () => {
+  const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
+  const minimapBg = useColorModeValue('#f7fafc', '#1a202c')
+  const minimapMaskColor = useColorModeValue('rgb(240, 240, 240, 0.6)', 'rgb(0, 0, 0, 0.6)')
   const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, setSelectedNodeIds, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
 
   const [rfNodes, setNodes, onNodesChange] = useNodesState([])
@@ -139,9 +142,16 @@ export const ModelCanvas = () => {
         <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
         <Controls />
         <MiniMap
+          style={{ backgroundColor: minimapBg }}
+          maskColor={minimapMaskColor}
           nodeColor={(node) => {
             const data = node.data as NodeData
-            return data.type === 'data' ? '#3182CE' : data.type === 'deterministic' ? '#38A169' : '#805AD5'
+            switch (data.type) {
+              case 'variable': return '#3182CE'  // blue
+              case 'data': return '#38A169'       // green
+              case 'computed': return '#DD6B20'   // orange
+              default: return '#805AD5'
+            }
           }}
         />
       </ReactFlow>
