@@ -24,10 +24,9 @@ const nodeTypes = {
 }
 
 export const ModelCanvas = () => {
-  const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
+  const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, setSelectedNodeIds, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
   const minimapBg = useColorModeValue('#f7fafc', '#1a202c')
   const minimapMaskColor = useColorModeValue('rgb(240, 240, 240, 0.6)', 'rgb(0, 0, 0, 0.6)')
-  const { nodes, edges, addEdge: addEdgeToStore, setSelectedNode, setSelectedNodeIds, deleteNode, deleteEdge, updateNodePosition } = useModelStore()
 
   const [rfNodes, setNodes, onNodesChange] = useNodesState([])
   const [rfEdges, setEdges, onEdgesChange] = useEdgesState([])
